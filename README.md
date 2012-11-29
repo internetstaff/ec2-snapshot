@@ -23,8 +23,7 @@ This script will use the default credentials.
 
 Install SDK
 
-sudo pear channel-discover pear.amazonwebservices.com
-sudo pear install aws/sdk
+pear -D auto_discover=1 install pear.amazonwebservices.com/sdk
 
 User needs:
 
