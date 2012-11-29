@@ -23,7 +23,7 @@ This script will use the default credentials.
 
 Install SDK
 
-pear -D auto_discover=1 install pear.amazonwebservices.com/sdk
+pear -D auto_discover=1 install pear.amazonwebservices.com/sdk-1.5.17
 
 User needs:
 
