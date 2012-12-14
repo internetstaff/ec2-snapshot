@@ -11,6 +11,10 @@ require_once 'AWSSDKforPHP/sdk.class.php';
 
 $ec2 = new AmazonEC2();
 
+$proxy = getenv("http_proxy");
+if ($proxy) 
+  $ec2->set_proxy($proxy);
+
 if (sizeof($argv) < 2) {
   echo "You must specify a region url ex: ec2.us-east-1.amazonaws.com\n";
   return;
@@ -34,7 +38,7 @@ if ($result->isOK()) {
     }    
   }
 } else {
-  echo "Failed to retrieve volumes.\n";
+  showErrors($result, "Failed to retrieve volumes");
   return;
 }
 
@@ -84,7 +88,7 @@ if ($result->isOK()) {
     }
   }
 } else {
-  echo "Failed to retrieve volumes.\n";
+  showErrors($result, "Failed to retrieve volumes");
   return;
 }
 
@@ -131,8 +135,8 @@ function getSnapshots($volume) {
     return $filteredSnapshots;
 
   } else {
+    showErrors($result, "Failed to retrieve snapshots.");
     throw new Exception("Failed to retrieve snapshots.");
-    return false;
   }
 }
 
@@ -156,7 +160,7 @@ function waitSnapshot($snapshotId) {
         break;
       }
     } else {
-      echo "Error retrieving snapshot status.\n";
+      showErrors($result, "Error retrieving snapshot status");
       break;
     }
     // Sleep for a while
@@ -178,7 +182,7 @@ function takeSnapshot($volume, $instanceName) {
     echo "Creating snapshot: ", $snapshotId, "\n";
     waitSnapshot($snapshotId);
   } else {
-    echo "Failed to create snapshot on volume ", $volume, "\n";
+    showErrors($result, "Failed to create snapshot on volume " . $volume);
   }
 }
 
@@ -192,6 +196,8 @@ function instanceRunning($volume) {
 
   if ($result->isOK()) {
     return ($result->body->reservationSet->item->instancesSet->item->instanceState->name == 'running');
+  } else {
+    showErrors($result, "Failed to retrieve instance status");
   }
 
   return true; 
@@ -201,8 +207,11 @@ function instanceRunning($volume) {
 function instanceName($volume) {
   global $ec2;
 
-  $instanceId = $volume->attachmentSet->item->instanceId;
   $instanceName = 'Unknown';
+  $instanceId = $volume->attachmentSet->item->instanceId;
+
+  if ($instanceId == null) 
+    return $instanceName;
   
   $result = $ec2->describe_instances(array('InstanceId' => $instanceId));
 
@@ -217,7 +226,10 @@ function instanceName($volume) {
         break;
       }
     }
+  } else {
+    showErrors($result, "Describe instance failed");
   }
+ 
   return $instanceName;
 }
 
@@ -250,6 +262,23 @@ function needsSnapshot($volume) {
   return false;
 }
 
-?>
+function showErrors($result, $message) {
+  $errors = $result->body->Errors->to_array();
+  echo $message;
+  switch (sizeof($message)) {
+    case 0:
+      break;
+    case 1:
+      echo ":";
+      break;
+    default:
+      echo ":\n";
+  }
+  foreach ($errors AS $error) {
+    echo $error[Code], ":", $error[Message], "\n";
+  }
 
-
+  return $errorText;
+}
+
+?>
