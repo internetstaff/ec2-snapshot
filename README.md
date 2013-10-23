@@ -3,10 +3,9 @@ ec2-snapshot
 
 This script will create a snapshot for every volume in an EC2 account that meets the criteria:
 
-   1. Is "in-use" (attached)
-   2. Is a system volume (/dev/sda1) OR
-   3. Has a tag named "SNAPSHOT"
-   4. Is attached to a running instance
+   1. Is "in-use" (attached) AND
+   2. Is attached to a running instance AND
+   2. Is a system volume (/dev/sda1) OR has a tag named "SNAPSHOT"
 
 This is because generally extra attached volumes are things we may not want to snapshot, like
 a database.  However, some things are, so to avoid snapshotting very large database or other
@@ -28,9 +27,11 @@ sudo pear install aws/sdk-1.6.2
 
 User needs:
 
-   "ec2:CreateSnapshot",
-   "ec2:DeleteSnapshot",
-   "ec2:DescribeSnapshots"
+        "ec2:DescribeInstances",
+        "ec2:DescribeVolumes",
+        "ec2:CreateSnapshot",
+        "ec2:DeleteSnapshot",
+        "ec2:DescribeSnapshots"
 
-This is pretty raw an ugly. Help clean it up! :)
+This is pretty raw and ugly. Help clean it up! :)
 
