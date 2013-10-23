@@ -274,11 +274,11 @@ function showErrors($result, $message) {
     default:
       echo ":\n";
   }
+
   foreach ($errors AS $error) {
     echo $error[Code], ":", $error[Message], "\n";
   }
 
-  return $errorText;
 }
 
 ?>
